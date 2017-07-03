@@ -1,0 +1,319 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ko" lang="ko"><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="bgm_data/userAgent-1.js" type="text/javascript"></script>
+    <script type="text/javascript" charset="utf-8" src="bgm_data/activeXman2101.js"></script></head><body><div id="daumNewXmanObject" width="0" height="0" style="position:absolute;"></div>
+
+
+    <script type="text/javascript" language="javascript">
+        document.domain = "daum.net";
+        //activX manager setting
+        var obj = new Object();
+        obj.classid = 'clsid:6A2E758A-028B-46BB-A11D-0608AB5A4ED3';
+        obj.id = 'CafeBGMCtrl';
+        obj.name = 'CafeBGMCtrl';
+        obj.width = '0px';
+        obj.height = '0px';
+        obj.codebase = 'http://cafeimg.hanmail.net/cafebgm/16/DaumBgmPlayer.cab#version=0,0,4,0';
+        obj.xmandesc = "는 다음에서 배경음악을 듣기 위해 꼭 필요한 프로그램입니다.";
+        obj.xmantitle = "Daum 배경음악 플레이어";
+        obj.param = [['OIData', 'flH6jkii_Ul_FZy.ZbfsvrbgB.RW2A4Z5ohPyPgfiuUQZ2bv8adOS91c-5VhHYCt']];
+        obj.xmanvalidkey = "NJXTWaZ_aYE7Kpsr3cr6EeR13jLijakrs8JGx3UGNGLmglnPPU.sBrSN8SQac6.Gy_5Q68dbQOYtkNthg69wbVG6LanC19iNCar1ar-XdbupHCMCKyrWzQX9faZRI8Hl";
+
+        isObject = true;
+        var isTryloadingActiveX = false;
+        var isNowPlaying = false;
+        var nowPlayMusic = 0;
+        // Bgm Status Code
+        var playCode = 1;
+        var pauseCode = 2;
+        var stopCode = 0;
+
+        // Service Status Area
+        var CAFEBGMSTAT = 0;
+        var shuffle_stat = false;
+        var curTitle = "";
+        var curArtist = "";
+
+        var retryCnt = 0;
+        var hasBGMModule = true;
+        var isActiveX = true;
+        var playerVol = 30;
+
+        var playRetryCnt = 1;
+        var isGetPlayList = false;
+
+        var LastPlayState_STOP = 0;
+        var LastPlayState_PLAY = 1;
+
+        function isPlaying() {
+            return isNowPlaying;
+        }
+        function haveActiveX() {
+            return isActiveX;
+        }
+
+        function loadBGMModule() {
+            isActiveX = false;
+        }
+
+        function init() {
+            try {
+                loadBGMModule();
+                window.setTimeout("startInitPlay();", 500);
+            } catch (e) {
+                if (retryCnt < 3) {
+                    retryCnt++;
+                    window.setTimeout("init();", 100);
+                } else {
+                }
+            }
+        }
+
+        function startInitPlay() {
+            try {
+                isGetPlayList = true;
+                if (top.down.bgmOn == true) {
+                    top.down.getPlayList();
+                    initVolume(CafeBGMCtrl.LastVolume);
+                }
+            } catch (e) {
+                if (playRetryCnt < 4) {
+                    playRetryCnt++;
+                    window.setTimeout("startInitPlay();", 200);
+                } else {
+                    isGetPlayList = false;
+                }
+            }
+        }
+
+        function checkBGMModule() {
+            try {
+                CafeBGMCtrl = document.getElementById("CafeBGMCtrl"); 
+            } catch (ignore) {
+                // edge 적용 전까지만 유효함.
+            }
+            
+            try {
+                if (CafeBGMCtrl.LastVolume > 0) {
+                    CafeBGMCtrl.SetVol(CafeBGMCtrl.LastVolume);
+                } else {
+                    CafeBGMCtrl.SetVol(playerVol);
+                }
+                hasBGMModule = true;
+            } catch (e) {
+                hasBGMModule = false;
+            }
+        }
+
+        function getVolume() {
+            return CafeBGMCtrl.LastVolume;
+        }
+
+        function changeVolume(value) {
+            playerVol = value;
+            CafeBGMCtrl.SetVol(value);
+        }
+
+        function initVolume(values) {
+            playerVol = values;
+            CafeBGMCtrl.SetVol(values);
+            top.down.initVolume(values)
+        }
+
+        function OMplay() {
+            if (!isGetPlayList) {
+                startInitPlay();
+            } else {
+                if (LastPlayState_PLAY == CafeBGMCtrl.LastPlayState) {
+                    CafeBGMCtrl.Play('');
+                } else {
+                    top.down.onMPStop();
+                }
+            }
+        }
+
+        function setNowPlayMusic(musicIdx) {
+            try {
+                top.down.setNowPlayMusicForTop(nowPlayMusic);
+            } catch (e) {
+            }
+        }
+
+        function getNowPlayMusic() {
+            return nowPlayMusic;
+        }
+
+        function getNowPlayTitle() {
+            if (CafeBGMCtrl.PlayState != 1) {
+                top.down.changeTitle(curTitle, curArtist);
+            }
+        }
+        function loadActiveX() {
+            if (!isTryloadingActiveX) {
+                daumNewActiveXman(obj, 'cafeBgmPlayerObj');
+            }
+            isTryloadingActiveX = true
+        }
+
+        
+        /**
+         * object tag 생성 스크립트.
+         * @dependsOn userAgent-1.0.14.min.js
+         * @param obj activeX 설정정보
+         * @param div axtiveX 컨테이너
+         */
+        function daumActiveX(obj, div) {
+            // generate html code
+            // for ie obejct
+            var html = '<object ';
+            if (!obj.id && !obj.name) {
+                var r = Math.round(Math.random() * 100);
+                html += 'id="daumActiveXObject' + r + '" name="daumActiveXObject' + r + '" ';
+            } else {
+                if (obj.id) html += 'id="' + obj.id + '" ';
+                else html += 'id="' + obj.name + '" ';
+                if (obj.name) html += 'name="' + obj.name + '" ';
+                else html += 'name="' + obj.id + '" ';
+            }
+            if (obj.type) html += 'type="' + obj.type + '" ';
+            if (obj.classid) html += 'classid="' + obj.classid + '" ';
+            if (obj.width) html += 'width="' + obj.width + '" ';
+            if (obj.height) html += 'height="' + obj.height + '" ';
+            if (obj.codebase) html += 'codebase="' + obj.codebase + '" ';
+            html += '>\n';
+            // append params
+            for (var i in obj.param) {
+                html += '<param name="' + obj.param[i][0] + '" value="' + obj.param[i][1] + '"/>\n';
+            }
+
+            // for ns embed
+            html += '<embed ';
+            if (!obj.id && !obj.name) {
+                var r = Math.round(Math.random() * 100);
+                html += 'id="daumActiveXObject' + r + '" name="daumActiveXObject' + r + '" ';
+            } else {
+                if (obj.id) html += 'id="' + obj.id + '" ';
+                if (obj.name) html += 'name="' + obj.name + '" ';
+            }
+            if (obj.type) html += 'type="' + obj.type + '" ';
+            if (obj.width) html += 'width="' + obj.width + '" ';
+            if (obj.height) html += 'height="' + obj.height + '" ';
+            // append params
+            for (var i in obj.param) {
+                if (obj.param[i]) {
+                    if (obj.param[i][0] == 'movie' || obj.param[i][0] == 'src') {
+                        var _src = obj.param[i][1];
+                    }
+                    if (obj.param[i][0].toLowerCase() == 'flashvars') {
+                        if (_src) {
+                            var tmpArr = html.split('src="' + _src + '"');
+                            html = tmpArr[0] + ' src="' + _src + '?' + obj.param[i][1] + '" ' + tmpArr[1];
+                        } else {
+                            obj.param[obj.param.length] = obj.param[i];
+                        }
+                    } else {
+                        html += obj.param[i][0] + '="' + obj.param[i][1] + '" ';
+                    }
+                }
+            }
+            html += '/>\n';
+            html += '</object>';
+
+            if (window.ua_result.browser.msie) {
+                document.getElementById(div).innerHTML = html;
+            } else if (obj.type == 'application/x-shockwave-flash' || obj.classid == 'clsid:d27cdb6e-ae6d-11cf-96b8-444553540000') {
+                // ie외의 브라우저에서 activex가 flash인 경우만 노출
+                document.getElementById(div).innerHTML = html;
+            }
+        }
+    </script>
+
+    <script text="text/javascript" for="CafeBGMCtrl" event="TitleChanged(lNewState,lTitle,lArtist,lCode)">
+        try {
+            isNowPlaying = true;
+            curTitle = lTitle;
+            curArtist = lArtist;
+            nowPlayMusic = CafeBGMCtrl.NowTrackNo;
+            setNowPlayMusic(CafeBGMCtrl.NowTrackNo);
+            top.down.changeTitle(lTitle, lArtist);
+        } catch (e) {
+        }
+    </script>
+
+    <script language="javascript" for="CafeBGMCtrl" event="OpenStateChange(lValue)">
+        var sMsg;
+        switch (lValue) {
+            case  0:
+                sMsg = "알수 없는 에러";
+                break;
+            case  8:
+                sMsg = "미디어를 변경 중";
+                break;
+            case  9:
+                sMsg = "미디어 위치 확인 중";
+                break;
+            case 10:
+                sMsg = "미디어 연결 중";
+                break;
+            case 11:
+                sMsg = "미디어 로딩 중";
+                break;
+            case 12:
+                sMsg = "미디어 여는 중";
+                break;
+            case 13:
+                sMsg = "미디어 열기 완료";
+                break;
+            case 20:
+                sMsg = "미디어 대기 중";
+                break;
+            case 21:
+                sMsg = "알수 없는 미디어 주소";
+                break;
+        }
+        try {
+            top.down.changeTitle("...", sMsg);
+        } catch (e) {
+        }
+
+    </script>
+    <script language="javascript" for="CafeBGMCtrl" event="PlayStateChange(lValue)">
+        try {
+            switch (lValue) {
+                case  1:
+                    isNowPlaying = false;
+                    top.down.changeTitle("플레이 대기중(정지)", "play버튼을 눌러주세요");
+                    break;
+                case  2:
+                    isNowPlaying = false;
+                    top.down.changeTitle("플레이 대기중(일시정지)", "play버튼을 눌러주세요");
+                    break;
+                case  3:
+                    isNowPlaying = true;
+                    top.down.changeTitle(curTitle, curArtist);
+                    break;
+                case  6:
+                    isNowPlaying = false;
+                    top.down.changeTitle("버퍼링", "잠시만기다려주세요");
+                    break;
+                case  9:
+                    isNowPlaying = false;
+                    top.down.changeTitle("미디어 교체 중", "잠시만기다려주세요");
+                    break;
+                case  11:
+                    isNowPlaying = false;
+                    top.down.changeTitle("다시 연결 중", "잠시만기다려주세요");
+                    break;
+            }
+        } catch (e) {
+        }
+    </script>
+
+
+
+<div id="cafeBgmPlayerObj">
+</div>
+
+
+</body></html>

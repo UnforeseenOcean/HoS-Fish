@@ -1,0 +1,1 @@
+(function(d){var c='script',a=d.createElement(c),b=d.getElementsByTagName(c)[0];a.type='text/java'+c;a.charset='utf-8';a.src="http://t1.daumcdn.net/clix_adserving/20170628-1413/amad_v2.js";b && b.parentNode.insertBefore(a,b);})(document);

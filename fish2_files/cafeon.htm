@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ko" lang="ko"><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="http://s1.daumcdn.net/svc/original/U03/cssjs/jquery/jquery-1.11.1.min.js"></script>
+    <![endif]-->
+    <!--[if gte IE 9]><!-->
+    <script type="text/javascript" src="cafeon_data/jquery.js" charset="utf-8"></script>
+    <!--<![endif]-->
+    
+    <script type="text/javascript" src="cafeon_data/cafeonManager.js" charset="utf-8"></script>
+    <script language="javascript">
+        $(document).ready(function () {
+            // down frame???? ???.
+            top.cafeonManager = cafeonManager;
+            
+            $(document).on("FLASH_LOADED", $.proxy(function() {
+                this.cafeonCommand = new CafeonCommand(CafeonCommand.getCafeonFlash());
+                this.login();
+            }, cafeonManager));
+            
+            var intervalId = window.setInterval(function () {
+                if (CafeonCommand.getCafeonFlash() && cafeonManager.cafeonServer) {
+                    window.clearInterval(intervalId);
+                    $(document).trigger("FLASH_LOADED", CafeonCommand.getCafeonFlash());
+                }
+            }, 100);
+        });
+    </script>
+</head>
+
+<body>
+
+<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" id="Cafeon" codebase="http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab" width="1" height="1">
+    <param name="movie" value="/_swf/Cafeon.swf">
+    <param name="quality" value="low">
+    <param name="bgcolor" value="#869ca7">
+    <param name="allowScriptAccess" value="always">
+    <param name="flashvars" value="LogMode=INFO&amp;isGetUserCount=true">
+    <embed src="cafeon_data/Cafeon.swf" bgcolor="#869ca7" name="Cafeon" play="true" loop="false" quality="low" allowscriptaccess="always" type="application/x-shockwave-flash" flashvars="LogMode=INFO&amp;isGetUserCount=true" pluginspage="http://www.adobe.com/go/getflashplayer" id="flashfirebug_1499059204827" allowfullscreen="true" allownetworking="all" width="1" height="1" align="middle">
+    <param name="allowFullScreen" value="true"><param name="AllowNetworking" value="all"></object>
+
+</body></html>
